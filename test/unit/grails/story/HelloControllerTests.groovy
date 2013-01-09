@@ -11,7 +11,27 @@ import org.junit.*
 @TestFor(HelloController)
 class HelloControllerTests {
 
-    void testSomething() {
-       fail "Implement me"
+    void test_return_Hello_You_by_default() {
+		askAndCheckResponse(null, 'Hello You !')
     }
+	
+	void test_should_return_email_when_asked(){
+		askAndCheckResponse([q:'Quelle est ton adresse email'], 'g.dhordain@gmail.com')
+	}
+	
+	void test_should_return_OUI_when_asked_for_mailing_list_subscription(){
+		askAndCheckResponse([q:'Es tu abonne a la mailing list(OUI/NON)'], 'OUI')
+	}
+	
+	void test_should_return_happiness_when_asked(){
+		askAndCheckResponse([q:'Es tu heureux de participer(OUI/NON)'], 'OUI')
+	}
+	
+	def askAndCheckResponse(parameters, expectedResponse){
+		if(parameters != null) {
+			controller.request.parameters = parameters
+		}
+		controller.index()
+		assertEquals(expectedResponse, controller.response.contentAsString)
+	}
 }
