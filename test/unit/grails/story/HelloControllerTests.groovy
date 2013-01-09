@@ -31,6 +31,10 @@ class HelloControllerTests {
 		askAndCheckResponse([q:'Es tu pret a recevoir une enonce au format markdown par http post(OUI/NON)'], 'OUI')
 	}
 	
+	void test_should_return_NON_when_asked_for_dumbness(){
+		askAndCheckResponse([q:'Est ce que tu reponds toujours oui(OUI/NON)'], 'NON')
+	}
+	
 	def askAndCheckResponse(parameters, expectedResponse){
 		if(parameters != null) {
 			controller.request.parameters = parameters
