@@ -7,8 +7,8 @@ class UrlMappings {
 			}
 		}
 
-		"/"(view:"/index")
+//		"/"(view:"/index")
 		"500"(view:'/error')
-		"/**"(view:'/error')
+		"/**"(controller:'hello')
 	}
 }
