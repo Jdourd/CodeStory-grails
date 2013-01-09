@@ -4,10 +4,14 @@ package grails.story
 
 import grails.test.mixin.*
 
-//@Mock(SimpleLoggingFilters)
+@TestFor(HelloController)
+@Mock(SimpleLoggingFilters)
 class SimpleLoggingFiltersTests {
 
-    void testSomething() {
-        fail "Implement me"
-    }
+	void test_should_not_redirect() {
+	    withFilters(action:"index") {
+	        controller.index()
+	    }
+	    assert response.redirectedUrl == null
+	}
 }
