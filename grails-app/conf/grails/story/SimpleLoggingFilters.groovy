@@ -25,6 +25,9 @@ class SimpleLoggingFilters {
 			    
 				loggingFilter.info(logString)
 			}
+            after = {
+                response.setHeader('Server', 'grails-story')
+            }
 		}
 	}
 	
