@@ -7,7 +7,7 @@ class UrlMappings {
 			}
 		}
 		
-		"/scalaskel/change/$value"(controller:'ScalaskelChange')
+		"/scalaskel/change/$value"(controller:'ScalaskelChange', action:'json')
 
 		"/**"(controller:'hello')
 		"500"(view:'/error')
