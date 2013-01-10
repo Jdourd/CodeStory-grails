@@ -12,8 +12,16 @@ import org.junit.*
 class ScalaskelChangeControllerTests {
 
     void test_should_change_1_cent(){
-		params.value = 1
+		askAndCheckResponse(1, '[{"foo":1}]')
+	}
+
+    void test_should_change_2_cent(){
+		askAndCheckResponse(2, '[{"foo":2}]')
+	}
+	
+	def askAndCheckResponse(change, expectedResponse){
+		controller.params.value = change
 		controller.json()
-		assertEquals('[{"foo":1}]', controller.response.contentAsString)
+		assertEquals(expectedResponse, controller.response.contentAsString)
 	}
 }
