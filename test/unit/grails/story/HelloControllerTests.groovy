@@ -35,6 +35,10 @@ class HelloControllerTests {
 		askAndCheckResponse([q:'Est ce que tu reponds toujours oui(OUI/NON)'], 'NON')
 	}
 	
+	void test_should_return_OUI_when_asked_for_first_statement(){
+		askAndCheckResponse([q:'As tu bien recu le premier enonce(OUI/NON)'], 'OUI')
+	}
+	
 	def askAndCheckResponse(parameters, expectedResponse){
 		if(parameters != null) {
 			controller.request.parameters = parameters
