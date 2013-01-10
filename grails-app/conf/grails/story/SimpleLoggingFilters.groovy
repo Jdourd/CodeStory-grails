@@ -12,7 +12,6 @@ class SimpleLoggingFilters {
 			  
 			  	def logString = request.getMethod() + " " + request.getRequestURI() + " "
 				
-				def params = request.getParameterMap()
 				if(!params.isEmpty()) {
 					logString += params
 					logString += " "
