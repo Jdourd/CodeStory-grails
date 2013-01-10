@@ -6,9 +6,10 @@ class UrlMappings {
 				// apply constraints here
 			}
 		}
+		
+		"/scalaskel/change/$value"(controller:'ScalaskelChange')
 
-//		"/"(view:"/index")
-		"500"(view:'/error')
 		"/**"(controller:'hello')
+		"500"(view:'/error')
 	}
 }
