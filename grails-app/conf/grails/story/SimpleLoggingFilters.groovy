@@ -15,13 +15,14 @@ class SimpleLoggingFilters {
 				def params = request.getParameterMap()
 				if(!params.isEmpty()) {
 					logString += params
+					logString += " "
 				}
 			  	
+				def contentType = request.getContentType()
+				logString += contentType + " "
+				
 			  	def contentLength = request.getContentLength()
-				if(contentLength > 0) {
-					def data = retrieveBody(request)
-					logString += contentLength + " " + data
-				}
+				logString += contentLength + " "
 			    
 				loggingFilter.info(logString)
 			}
@@ -29,17 +30,5 @@ class SimpleLoggingFilters {
                 response.setHeader('Server', 'grails-story')
             }
 		}
-	}
-	
-	String retrieveBody(request) {
-		BufferedReader reader = request.getReader()
-		StringBuilder sb = new StringBuilder()
-	    String line = reader.readLine()
-	    while (line != null) {
-	        sb.append(line + "\n")
-	        line = reader.readLine()
-	    }
-	    reader.close()
-	    return sb.toString()
 	}
 }
