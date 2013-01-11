@@ -86,5 +86,5 @@ log4j = {
            'org.hibernate',
            'net.sf.ehcache.hibernate'
 	info stdout: ['ut'], additivity:true
-	debug stdout: 'grails.story.ScalaskelChangeController'
+	info stdout: 'grails.story.ScalaskelChangeController'
 }
