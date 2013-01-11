@@ -72,8 +72,6 @@ environments {
 // log4j configuration
 log4j = {
     appenders {
-//        console name:'stdout', layout:pattern(conversionPattern: '%c{2} %m%n'), threshold: org.apache.log4j.Level.DEBUG
-        file name:'file', file:'/var/logs/mylog.log'
     }
 
     error  'org.codehaus.groovy.grails.web.servlet',        // controllers
@@ -88,5 +86,5 @@ log4j = {
            'org.hibernate',
            'net.sf.ehcache.hibernate'
 	info stdout: ['ut'], additivity:true
-	info file: ['ut'], additivity:true
+	debug stdout: 'grails.story.ScalaskelChangeController'
 }
