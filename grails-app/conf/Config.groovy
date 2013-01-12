@@ -87,4 +87,5 @@ log4j = {
            'net.sf.ehcache.hibernate'
 	info stdout: ['ut'], additivity:true
 	info stdout: 'grails.story.ScalaskelChangeController'
+	info stdout: 'grails.story.SolveEquationController'
 }
