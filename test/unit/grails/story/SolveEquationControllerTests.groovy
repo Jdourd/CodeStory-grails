@@ -23,7 +23,7 @@ class SolveEquationControllerTests {
     }
 	
 	void test_should_return_results_with_big_decimal() {
-       askAndCheckResponse('((1.1+2)+3.14+4+(5+6+7)+(8+9+10)*4267387833344334647677634)/2*553344300034334349999000','31878018903828901761984975061078744643351263313920')
+       askAndCheckResponse('((1.1+2)+3.14+4+(5+6+7)+(8+9+10)*4267387833344334647677634)/2*553344300034334349999000','31878018903828899277492024491376690701584023926880')
     }
 	
 	def askAndCheckResponse(equation, expectedResponse){
