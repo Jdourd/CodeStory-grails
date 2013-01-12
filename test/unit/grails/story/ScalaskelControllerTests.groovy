@@ -8,8 +8,8 @@ import org.junit.*
 /**
  * See the API for {@link grails.test.mixin.web.ControllerUnitTestMixin} for usage instructions
  */
-@TestFor(ScalaskelChangeController)
-class ScalaskelChangeControllerTests {
+@TestFor(ScalaskelController)
+class ScalaskelControllerTests {
 
     void test_should_change_1_cent(){
 		askAndCheckResponse(1, [["foo":1]])
@@ -48,8 +48,8 @@ class ScalaskelChangeControllerTests {
     }
 	
 	def askAndCheckResponse(change, expectedResponse){
-		params.value = change
-		controller.json()
+		params.id = change
+		controller.change()
 		def responseArray = JSON.parse(response.contentAsString)
 		expectedResponse.each({
 			assertThat(responseArray).contains(it)

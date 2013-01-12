@@ -3,7 +3,7 @@ package grails.story
 import org.apache.commons.logging.LogFactory
 import grails.converters.JSON
 
-class ScalaskelChangeController {
+class ScalaskelController {
 
 	private static final logger = LogFactory.getLog(this)
 	
@@ -11,8 +11,8 @@ class ScalaskelChangeController {
 	def qixValueInCent = 11
 	def barValueInCent = 7
 	
-	def json = {
-		def centToChange = params.value as int
+	def change = {
+		def centToChange = params.id as int
 		def combinaisons = new HashSet()
 		
 		def baz = (centToChange / bazValueInCent) as int
