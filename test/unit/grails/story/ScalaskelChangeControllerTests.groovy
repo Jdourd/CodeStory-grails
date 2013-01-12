@@ -48,13 +48,13 @@ class ScalaskelChangeControllerTests {
     }
 	
 	def askAndCheckResponse(change, expectedResponse){
-		controller.params.value = change
+		params.value = change
 		controller.json()
-		def response = JSON.parse(controller.response.contentAsString)
+		def responseArray = JSON.parse(response.contentAsString)
 		expectedResponse.each({
-			assertThat(response).contains(it)
+			assertThat(responseArray).contains(it)
 		})
-		assertThat(response).hasSize(expectedResponse.size())
+		assertThat(responseArray).hasSize(expectedResponse.size())
 	}
 	
 	void test_should_change_100_cent(){
