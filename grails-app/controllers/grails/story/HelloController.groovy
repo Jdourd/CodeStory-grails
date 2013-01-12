@@ -15,6 +15,8 @@ class HelloController {
 			render(text:'OUI', contentType:'text/plain')
 		} else if(question == 'Est ce que tu reponds toujours oui(OUI/NON)') {
 			render(text:'NON', contentType:'text/plain')
+		} else if(question == 'As tu passe une bonne nuit malgre les bugs de l etape precedente(PAS_TOP/BOF/QUELS_BUGS)') {
+			render(text:'QUELS_BUGS', contentType:'text/plain')
 		} else {
 			render(text:'Hello You !', contentType:'text/plain')
 		}

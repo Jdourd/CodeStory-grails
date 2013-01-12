@@ -38,6 +38,10 @@ class HelloControllerTests {
 		askAndCheckResponse([q:'As tu bien recu le premier enonce(OUI/NON)'], 'OUI')
 	}
 	
+	void test_should_return_QUELS_BUGS_when_asked_for_good_night_sleep(){
+		askAndCheckResponse([q:'As tu passe une bonne nuit malgre les bugs de l etape precedente(PAS_TOP/BOF/QUELS_BUGS)'], 'QUELS_BUGS')
+	}
+	
 	def askAndCheckResponse(parameters, expectedResponse){
 		if(parameters != null) {
 			controller.request.parameters = parameters
@@ -49,12 +53,12 @@ class HelloControllerTests {
 	void test_should_redirect_to_SolveEquationController_when_q_param_match_regex(){
 		params.q = "1+1"
 		controller.index()
-		assertThat("/solveEquation/solve").isEqualTo(response.redirectedUrl)
+		assertThat("/solveEquation/solve?q=$params.q").isEqualTo(URLDecoder.decode(response.redirectedUrl))
 	}
 	
 	void test_should_redirect_to_SolveEquationController_when_q_param_match_regex_2(){
 		params.q = "((1+2)+3+4+(5+6+7)+(8+9+10)*3)/2*5"
 		controller.index()
-		assertThat("/solveEquation/solve").isEqualTo(response.redirectedUrl)
+		assertThat("/solveEquation/solve?q=$params.q").isEqualTo(URLDecoder.decode(response.redirectedUrl))
 	}
 }
