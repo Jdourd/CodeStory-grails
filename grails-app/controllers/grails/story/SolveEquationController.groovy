@@ -13,7 +13,8 @@ class SolveEquationController {
 		if(result == resultAsInt) {
 			render(text:resultAsInt, contentType:'text/plain')
 		} else {
-			render(text:result, contentType:'text/plain')
+			def resultWithComma = (result as String).replace('.', ',')
+			render(text:resultWithComma, contentType:'text/plain')
 		}
 	}
 }
