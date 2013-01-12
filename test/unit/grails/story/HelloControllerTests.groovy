@@ -1,7 +1,6 @@
 package grails.story
 
-
-
+import static org.fest.assertions.Assertions.assertThat
 import grails.test.mixin.*
 import org.junit.*
 
@@ -44,6 +43,18 @@ class HelloControllerTests {
 			controller.request.parameters = parameters
 		}
 		controller.index()
-		assertEquals(expectedResponse, controller.response.contentAsString)
+		assertEquals(expectedResponse, response.contentAsString)
+	}
+	
+	void test_should_redirect_to_SolveEquationController_when_q_param_match_regex(){
+		params.q = "1+1"
+		controller.index()
+		assertThat("/solveEquation/solve").isEqualTo(response.redirectedUrl)
+	}
+	
+	void test_should_redirect_to_SolveEquationController_when_q_param_match_regex_2(){
+		params.q = "((1+2)+3+4+(5+6+7)+(8+9+10)*3)/2*5"
+		controller.index()
+		assertThat("/solveEquation/solve").isEqualTo(response.redirectedUrl)
 	}
 }

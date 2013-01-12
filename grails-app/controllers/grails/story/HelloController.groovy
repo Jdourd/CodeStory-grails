@@ -4,7 +4,9 @@ class HelloController {
 
     def index() {
 		def question = params["q"]
-		if(question == "Quelle est ton adresse email") {
+		if(question ==~ /^[0-9 ,.*+-\/()]+$/){
+			redirect(controller:"SolveEquation", action:"solve",  params: [q: question])
+		} else if(question == "Quelle est ton adresse email") {
 			render(text:'g.dhordain@gmail.com', contentType:'text/plain')
 		} else if(['Es tu abonne a la mailing list(OUI/NON)',
 				   'Es tu heureux de participer(OUI/NON)',
