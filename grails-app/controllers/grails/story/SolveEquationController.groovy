@@ -12,8 +12,10 @@ class SolveEquationController {
 		ScriptEngineManager mgr = new ScriptEngineManager()
 		ScriptEngine engine = mgr.getEngineByName("JavaScript")
 		def cleanedEquation = params.q.replaceAll(/ +/, '+').replaceAll(',', '.')
-		log.debug "equation=$cleanedEquation"
-		def result = engine.eval(cleanedEquation)
+		logger.debug "equation=$cleanedEquation"
+		def BigDecimal result = engine.eval(cleanedEquation)
+		logger.debug "result=$result"
+		
 		def resultAsInt = result as int
 		if(result == resultAsInt) {
 			render(text:resultAsInt, contentType:'text/plain')
