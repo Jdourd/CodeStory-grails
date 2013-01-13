@@ -1,7 +1,5 @@
 package grails.story
 
-import java.util.concurrent.ForkJoinPool;
-
 import org.apache.commons.logging.LogFactory
 import grails.converters.JSON
 import JaCoP.core.*
