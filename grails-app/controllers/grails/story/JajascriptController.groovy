@@ -71,6 +71,7 @@ class JajascriptController {
 		logger.debug "vars=$vars"
 		
 		Search<IntVar> label = new DepthFirstSearch<IntVar>();
+		label.setPrintInfo(logger.isDebugEnabled());
 		SelectChoicePoint<IntVar> select = new InputOrderSelect<IntVar>(store, vars as IntVar[], new IndomainMax<IntVar>());
 		boolean result = label.labeling(store, select);
 		if ( result ) {
