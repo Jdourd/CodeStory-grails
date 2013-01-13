@@ -89,5 +89,5 @@ log4j = {
 	info stdout: 'grails.story.ScalaskelChangeController'
 	info stdout: 'grails.story.SolveEquationController'
 	info stdout: 'grails.story.JajascriptController'
-	debug stdout: 'grails.story.TripSolverService'
+	info stdout: 'grails.story.TripSolverService'
 }
