@@ -61,6 +61,9 @@ class JajascriptControllerTests {
     }
 	
 	def askAndCheckResponse(propositions, expectedResponse){
+		defineBeans {
+			tripSolverService(TripSolverService)
+		}
 		request.json = propositions
 		controller.optimize()
 		def responseObject = JSON.parse(response.contentAsString)
