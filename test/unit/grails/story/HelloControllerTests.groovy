@@ -42,6 +42,10 @@ class HelloControllerTests {
 		askAndCheckResponse([q:'As tu passe une bonne nuit malgre les bugs de l etape precedente(PAS_TOP/BOF/QUELS_BUGS)'], 'QUELS_BUGS')
 	}
 	
+	void test_should_return_OUI_when_asked_for_second_statement(){
+		askAndCheckResponse([q:'As tu bien recu le second enonce(OUI/NON)'], 'OUI')
+	}
+	
 	def askAndCheckResponse(parameters, expectedResponse){
 		if(parameters != null) {
 			controller.request.parameters = parameters

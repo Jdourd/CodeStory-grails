@@ -11,7 +11,8 @@ class HelloController {
 		} else if(['Es tu abonne a la mailing list(OUI/NON)',
 				   'Es tu heureux de participer(OUI/NON)',
 				   'Es tu pret a recevoir une enonce au format markdown par http post(OUI/NON)',
-				   'As tu bien recu le premier enonce(OUI/NON)'].contains(question)){
+				   'As tu bien recu le premier enonce(OUI/NON)',
+				   'As tu bien recu le second enonce(OUI/NON)'].contains(question)){
 			render(text:'OUI', contentType:'text/plain')
 		} else if(question == 'Est ce que tu reponds toujours oui(OUI/NON)') {
 			render(text:'NON', contentType:'text/plain')
