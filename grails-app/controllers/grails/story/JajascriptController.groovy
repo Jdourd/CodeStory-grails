@@ -25,6 +25,8 @@ class JajascriptController {
 		}
 		def optimisation = tripSolverService.solveTrips(trips)
 		logger.debug "optimisation=$optimisation"
-		render(text: optimisation as JSON, contentType: "application/json")
+		def converter = optimisation as JSON
+		converter.prettyPrint = true
+		render(text: converter.toString(), contentType: "application/json")
 	}
 }
