@@ -14,8 +14,16 @@ class JajascriptController {
 	def tripSolverService
 
     def optimize = {
-		logger.debug "request=$request.JSON"
-		def optimisation = tripSolverService.solveTrips(request.JSON)
+		def trips
+		if(!request.JSON.isEmpty()) {
+			trips = request.JSON
+			logger.debug "json request=$trips"
+		} else {
+			trips = params.find { true }.key // get first key
+			trips = JSON.parse trips
+			logger.debug "map request=$trips"
+		}
+		def optimisation = tripSolverService.solveTrips(trips)
 		logger.debug "optimisation=$optimisation"
 		render(optimisation as JSON)
 	}
