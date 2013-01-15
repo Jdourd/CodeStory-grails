@@ -60,4 +60,14 @@ class TripSolverServiceTests {
 		def expectedOptimisation = ["gain" : 23, "path" : ["MONAD42","LEGACY01","PISTAC03"]]
 		assert service.solveTrips(propositions) == expectedOptimisation
     }
+	
+	void test_trip_with_inactivity() {
+		def propositions = [
+			["VOL": "AF1", "DEPART":0, "DUREE":1, "PRIX": 2],
+			["VOL": "AF2", "DEPART":4, "DUREE":1, "PRIX": 4],
+			["VOL": "AF3", "DEPART":2, "DUREE":1, "PRIX": 6]
+		]
+		def expectedOptimisation = [ "gain": 12, "path": ["AF1","AF2","AF3"]]
+		assert service.solveTrips(propositions) == expectedOptimisation
+	}
 }

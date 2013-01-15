@@ -55,7 +55,7 @@ class TripSolverService {
 		
 		def uniqueTripCollisions = new HashSet()
 		tripCollisions.each {
-			if(it.size >= 2) {
+			if(it  != null && it.size >= 2) {
 				uniqueTripCollisions.add(it)
 			}
 		}
