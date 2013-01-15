@@ -36,7 +36,8 @@ class TripSolverService {
 	
 	private createTripConstraints(jsonTrips) {
 		def tripCollisions = []
-		jsonTrips.eachWithIndex { object, index ->
+		jsonTrips.sort{ it.DEPART }
+				 .eachWithIndex { object, index ->
 			def trip = new BooleanVar(store, "t$index")
 			trips.add(trip)
 			tripWeights.add(object.PRIX)

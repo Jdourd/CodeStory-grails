@@ -67,7 +67,7 @@ class TripSolverServiceTests {
 			["VOL": "AF2", "DEPART":4, "DUREE":1, "PRIX": 4],
 			["VOL": "AF3", "DEPART":2, "DUREE":1, "PRIX": 6]
 		]
-		def expectedOptimisation = [ "gain": 12, "path": ["AF1","AF2","AF3"]]
+		def expectedOptimisation = [ "gain": 12, "path": ["AF1","AF3","AF2"]]
 		assert service.solveTrips(propositions) == expectedOptimisation
 	}
 }
