@@ -14,7 +14,8 @@ class HelloController {
 				   'As tu bien recu le premier enonce(OUI/NON)',
 				   'As tu bien recu le second enonce(OUI/NON)'].contains(question)){
 			render(text:'OUI', contentType:'text/plain')
-		} else if(question == 'Est ce que tu reponds toujours oui(OUI/NON)') {
+		} else if(['Est ce que tu reponds toujours oui(OUI/NON)', 
+				   'As tu copie le code de ndeloof(OUI/NON/JE_SUIS_NICOLAS)'].contains(question)) {
 			render(text:'NON', contentType:'text/plain')
 		} else if(question == 'As tu passe une bonne nuit malgre les bugs de l etape precedente(PAS_TOP/BOF/QUELS_BUGS)') {
 			render(text:'QUELS_BUGS', contentType:'text/plain')

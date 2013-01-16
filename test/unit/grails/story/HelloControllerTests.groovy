@@ -46,6 +46,10 @@ class HelloControllerTests {
 		askAndCheckResponse([q:'As tu bien recu le second enonce(OUI/NON)'], 'OUI')
 	}
 	
+	void test_should_return_NON_when_asked_for_code_spying(){
+		askAndCheckResponse([q:'As tu copie le code de ndeloof(OUI/NON/JE_SUIS_NICOLAS)'], 'NON')
+	}
+	
 	def askAndCheckResponse(parameters, expectedResponse){
 		if(parameters != null) {
 			controller.request.parameters = parameters
