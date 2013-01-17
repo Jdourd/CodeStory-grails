@@ -19,75 +19,53 @@ class TripSolverService {
 		def store = new Store()
 		def vars = []
 		def profit
-		def trips = []
+		def starts = []
+		def lengths = []
+		def choosedLengths = []
+		def ressources = []
 		def tripWeights = []
 		def optimisation = [gain: 0, path: []]
 	
 //		logger.debug "jsonTrips=$jsonTrips"
 		def tripCollisions = []
 		jsonTrips.sort{ it.DEPART }
-				 .eachWithIndex { object, index ->
-			def trip = new BooleanVar(store, "t$index")
-			trips.add(trip)
+			.eachWithIndex { object, index ->
 			tripWeights.add(object.PRIX)
-
-			for(int i = 0; i < object.DUREE; i++){
-				def hour = object.DEPART + i
-				if(tripCollisions[hour] == null) {
-					tripCollisions[hour] = []
-				}
-				tripCollisions[hour].add(index)
-			}
+			
+			starts.add(new IntVar(store, "s$index", object.DEPART, object.DEPART))
+			def choosedLength = new IntVar(store, "cl$index", 0, 1)
+			choosedLengths.add(choosedLength)
+			def length = new IntVar(store, "l$index", object.DUREE, object.DUREE)
+			length.addDom(0, 0)
+			lengths.add(length)
+			store.impose(new XmulCeqZ(choosedLength, object.DUREE, length))
+			
+			ressources.add(new IntVar(store, "r$index", 1, 1))
 		}
-//		logger.debug "trips=$trips"
-//		logger.debug "tripWeights=$tripWeights"
-//		logger.debug "tripCollisions=$tripCollisions"
+		IntVar limit = new IntVar(store, "limit", 0, 1);
+		Constraint ctr = new Cumulative(starts, lengths, ressources, limit)
+		store.impose(ctr)
 		
-		def uniqueTripCollisions = new HashSet()
-		tripCollisions.each {
-			if(it  != null && it.size >= 2) {
-				uniqueTripCollisions.add(it)
-			}
-		}
-//		logger.debug "uniqueTripCollisions=$uniqueTripCollisions"
-
-		uniqueTripCollisions.each {
-			def combinaisonSize = it.size
-			def allZeroCombinaison = [0] * combinaisonSize
-			def possibleCombinaisons = [allZeroCombinaison]
-
-			for(int i = 0; i < combinaisonSize; i++) {
-				def anotherCombinaison = [0] * combinaisonSize
-				anotherCombinaison[i] = 1
-				possibleCombinaisons.add(anotherCombinaison)
-			}
-
-			def varsInCombinaison = []
-			for(int i = 0; i < combinaisonSize; i++) {
-				varsInCombinaison.add(trips[it[i]])
-			}
-
-			store.impose(new ExtensionalSupportVA(varsInCombinaison, possibleCombinaisons as int[][]));
-//			logger.debug "varsInCombinaison=$varsInCombinaison"
-//			logger.debug "possibleCombinaisons=$possibleCombinaisons"
-		}
-		profit = new IntVar(store, "profit", 0, IntDomain.MaxInt);
-		store.impose(new SumWeight(trips, tripWeights, profit))
+		profit = new IntVar(store, "profit", 0, IntDomain.MaxInt)
+		store.impose(new SumWeight(choosedLengths, tripWeights, profit))
+		
 		vars.add(profit)
-		vars.addAll(trips)
-//		logger.debug "vars=$vars"
+		vars.addAll(choosedLengths)
+
 		Search<IntVar> label = new DepthFirstSearch<IntVar>();
-		label.setPrintInfo(logger.isDebugEnabled());
+//		label.setPrintInfo(logger.isDebugEnabled());
+		label.setPrintInfo(false);
 		SelectChoicePoint<IntVar> select = new InputOrderSelect<IntVar>(store, vars as IntVar[], new IndomainMax<IntVar>());
 		if(label.labeling(store, select)) {
 			def selectedTrips = []
-			trips.eachWithIndex { object, index ->
+			choosedLengths.eachWithIndex { object, index ->
 				if(object.value() == 1) {
 					selectedTrips.add(jsonTrips[index].VOL)
 				}
 			}
 			optimisation = [gain: profit.value(), path: selectedTrips]
 		}
+		
 //		logger.debug "optimisation=$optimisation"
 		return optimisation
     }
