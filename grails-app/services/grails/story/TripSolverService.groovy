@@ -51,13 +51,12 @@ class TripSolverService {
 		}
 //		logger.debug "uniqueTripCollisions=$uniqueTripCollisions"
 
-		uniqueTripCollisions.each { uniqueTripCollision ->
-			store.imposeDecomposition(new Sequence(uniqueTripCollision as IntVar[], //variable list 
-                        new IntervalDomain(1,1), //set of values 
-                        uniqueTripCollision.size, // q, sequence length 
-                        0, // min 
-                        1  // max 
-                      ));
+		uniqueTripCollisions.eachWithIndex { uniqueTripCollision, index ->
+			store.impose(
+				new Among(
+					uniqueTripCollision as IntVar[], 
+					new IntervalDomain(1,1), 
+					new IntVar(store, "c$index", 0,1)))
 		}
 		profit = new IntVar(store, "profit", 0, IntDomain.MaxInt);
 		store.impose(new SumWeight(trips, tripWeights, profit))
