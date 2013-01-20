@@ -2,9 +2,6 @@ package grails.story
 
 import org.apache.commons.logging.LogFactory
 import grails.converters.JSON
-import JaCoP.core.*
-import JaCoP.constraints.*
-import JaCoP.search.*
 
 class TripSolverService {
 
@@ -12,71 +9,49 @@ class TripSolverService {
 	
 	// Services are transactional by default in Grails. It is not needed here.
 	static transactional = false
-	// A new service will be created per request.
 	static scope = "singleton"
 
     def solveTrips(jsonTrips) {
-		def store = new Store()
-		def vars = []
-		def profit
-		def trips = []
-		def tripWeights = []
-		def optimisation = [gain: 0, path: []]
-	
 //		logger.debug "jsonTrips=$jsonTrips"
-		def tripCollisions = []
-		jsonTrips.sort{ it.DEPART }
-				 .eachWithIndex { object, index ->
-			def trip = new BooleanVar(store, "t$index")
-			trips.add(trip)
-			tripWeights.add(object.PRIX)
-
-			for(int i = 0; i < object.DUREE; i++){
-				def hour = object.DEPART + i
-				if(tripCollisions[hour] == null) {
-					tripCollisions[hour] = []
-				}
-				tripCollisions[hour].add(trip)
-			}
-		}
-//		logger.debug "trips=$trips"
-//		logger.debug "tripWeights=$tripWeights"
-//		logger.debug "tripCollisions=$tripCollisions"
+		def optimisation = [gain: 0, path: []]
 		
-		def uniqueTripCollisions = new HashSet()
-		tripCollisions.each {
-			if(it  != null && it.size >= 2) {
-				uniqueTripCollisions.add(it)
-			}
-		}
-//		logger.debug "uniqueTripCollisions=$uniqueTripCollisions"
-
-		uniqueTripCollisions.eachWithIndex { uniqueTripCollision, index ->
-			store.impose(
-				new Among(
-					uniqueTripCollision as IntVar[], 
-					new IntervalDomain(1,1), 
-					new IntVar(store, "c$index", 0,1)))
-		}
-		profit = new IntVar(store, "profit", 0, IntDomain.MaxInt);
-		store.impose(new SumWeight(trips, tripWeights, profit))
-		vars.add(profit)
-		vars.addAll(trips)
-//		logger.debug "vars=$vars"
-		Search<IntVar> label = new DepthFirstSearch<IntVar>();
-//		label.setPrintInfo(logger.isDebugEnabled());
-		label.setPrintInfo(false);
-		SelectChoicePoint<IntVar> select = new InputOrderSelect<IntVar>(store, vars as IntVar[], new IndomainMax<IntVar>());
-		if(label.labeling(store, select)) {
-			def selectedTrips = []
-			trips.eachWithIndex { object, index ->
-				if(object.value() == 1) {
-					selectedTrips.add(jsonTrips[index].VOL)
-				}
-			}
-			optimisation = [gain: profit.value(), path: selectedTrips]
-		}
+		// Trip map, grouped/sorted by DEPART and sorted by DUREE
+		def tripMap = 
+			new TreeMap(
+				jsonTrips
+					.collectEntries { [(it.DEPART) : []] }
+					.each { key, value ->
+						def jsonTripsPart = jsonTrips.findAll { it.DEPART == key }.sort{ it.DUREE }
+						value.addAll jsonTripsPart
+					})
+//		logger.debug "tripMap=$tripMap"
 		
+		def lastDEPART = tripMap.lastKey()
+//		logger.debug "lastDEPART=$lastDEPART"
+		
+		def optimisationSet = new HashSet()
+		def optimize 
+		optimize = { selectedTrips, currentDEPART ->
+//			logger.debug "currentDEPART=$currentDEPART selectedTrips=$selectedTrips"
+			if(currentDEPART > lastDEPART) {
+				optimisationSet.add selectedTrips
+			} else {
+				tripMap[currentDEPART].each {
+//					logger.debug "goto nextDEPART=" + (currentDEPART + it.DUREE) + " with trip=$it"
+					// add it to selectedTrips without modifying it
+					optimize(selectedTrips + it, currentDEPART + it.DUREE)
+				}
+				// Without selectioning any trip with currentDEPART level
+				optimize(selectedTrips, ++currentDEPART)
+			}
+		}
+		optimize([], 0)
+//		logger.debug "optimisationSet=$optimisationSet"
+		
+		def optimizedTrips = optimisationSet.max { it.sum { it.PRIX } }
+//		logger.debug "optimizedTrips=$optimizedTrips"
+		
+		optimisation = [gain: optimizedTrips.sum { it.PRIX }, path: optimizedTrips.collect { it.VOL }]
 //		logger.debug "optimisation=$optimisation"
 		return optimisation
 	}
