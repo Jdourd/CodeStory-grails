@@ -7,7 +7,7 @@ class SimpleLoggingFilters {
 	private static final loggingFilter = Logger.getLogger('ut')
 
 	def filters = {
-		all(uri:'/**') {
+		all(uriExclude: '/jajascript/optimize') {
 			before = {
 			  
 			  	def logString = request.getMethod() + " " + request.getRequestURI() + " "
