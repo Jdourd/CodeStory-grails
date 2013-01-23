@@ -16,11 +16,8 @@ class TripSolverService {
 //		logger.debug "jsonTrips=$jsonTrips"
 		def optimisation = [gain: 0, path: []]
 		
-
-		// pour chaque noeud, je trouve ces fils
-		jsonTrips.each { trip ->
-			trip['fils'] = jsonTrips.findAll { fils -> trip.DEPART + trip.DUREE <= fils.DEPART }
-		}
+		// tri topologique
+		jsonTrips = jsonTrips.sort { - it.DEPART }
 		
 // 		Calcul d'un gain cumulé :
 //		 - s'il est déjà calculé, je le retourne
@@ -33,7 +30,7 @@ class TripSolverService {
 			if(!trip.containsKey('cumul')) {
 //				logger.debug "$trip.VOL | cumul not found, calculating it !"
 				trip['cumul'] = trip.PRIX
-				def fils = trip['fils']
+				def fils = jsonTrips.findAll { trip.DEPART + trip.DUREE <= it.DEPART }
 //				logger.debug "$trip.VOL | fils         => " + fils
 				if(fils != null && !fils.isEmpty()) {
 //					logger.debug "$trip.VOL | I have childs !"
