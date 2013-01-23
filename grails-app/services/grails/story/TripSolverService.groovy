@@ -11,58 +11,53 @@ class TripSolverService {
 	static transactional = false
 	static scope = "singleton"
 
+	/** Algotrithm designed with help of Jeremie Lussiez */
     def solveTrips(jsonTrips) {
 //		logger.debug "jsonTrips=$jsonTrips"
 		def optimisation = [gain: 0, path: []]
 		
-		// Trip map, grouped/sorted by DEPART and sorted by DUREE
-		def tripMap = 
-			new TreeMap(
-				jsonTrips
-					.collectEntries { [(it.DEPART) : []] }
-					.each { key, value ->
-						def jsonTripsPart = jsonTrips.findAll { it.DEPART == key }.sort{ it.DUREE }
-						value.addAll jsonTripsPart
-					})
-//		logger.debug "tripMap=$tripMap"
-		
-		def lastDEPART = tripMap.lastKey()
-//		logger.debug "lastDEPART=$lastDEPART"
-		
-		def optimizedTrips = [gain:0, trips:[]]
-		// By default, acceptable loss is all trips PRIX
-		def maxLoss = jsonTrips.sum { it.PRIX }
-		def acceptableLoss = maxLoss
-		def optimize 
-		optimize = { selectedTrips, currentDEPART, currentLoss ->
-//			logger.debug "currentDEPART=$currentDEPART selectedTrips=$selectedTrips currentLoss=$currentLoss/$acceptableLoss"
-			if(currentLoss < acceptableLoss) {
-				if(currentDEPART > lastDEPART) {
-					def currentGain = selectedTrips.sum { it.PRIX }
-					if(optimizedTrips.gain < currentGain) {
-						optimizedTrips = [gain:currentGain, trips: selectedTrips]
-						acceptableLoss = maxLoss - currentGain
-					}
-				} else {
-					def currentDEPARTmaxLoss = 0
-					if(tripMap[currentDEPART] != null) {
-						currentDEPARTmaxLoss = tripMap[currentDEPART].sum { it.PRIX }
-						tripMap[currentDEPART].each {
-							// add it to selectedTrips without modifying it
-							optimize(selectedTrips + it, currentDEPART + it.DUREE, currentLoss + currentDEPARTmaxLoss - it.PRIX)
-						}
-					}
-					// Without selectioning any trip with currentDEPART level
-					optimize(selectedTrips, ++currentDEPART, currentLoss + currentDEPARTmaxLoss)
-				}
-			} else {
-//				logger.debug "skipping it"
-			}
+
+		// pour chaque noeud, je trouve ces fils
+		jsonTrips.each { trip ->
+			trip['fils'] = jsonTrips.findAll { fils -> trip.DEPART + trip.DUREE <= fils.DEPART }
 		}
-		optimize([], 0, 0)
-//		logger.debug "optimizedTrips=$optimizedTrips"
 		
-		optimisation = [gain: optimizedTrips.gain, path: optimizedTrips.trips.collect { it.VOL }]
+// 		Calcul d'un gain cumulé :
+//		 - s'il est déjà calculé, je le retourne
+//		 - s'il n'a pas de fils, noeud.GAIN_CUMULE = noeud.PRIX
+//		 - s'il a un fils, noeud.GAIN_CUMULE = noeud.PRIX + fils.GAIN_CUMULE et je stocke le fils
+//		 - s'il a plusieurs fils, noeud.GAIN_CUMULE = noeud.PRIX + max(fils.GAIN_CUMULE) et je stocke le fils qui a le max(père.GAIN_CUMULE)
+		def calculGainCumule
+		calculGainCumule = { trip ->
+//			logger.debug "$trip.VOL | pere         => " + trip
+			if(!trip.containsKey('cumul')) {
+//				logger.debug "$trip.VOL | cumul not found, calculating it !"
+				trip['cumul'] = trip.PRIX
+				def fils = trip['fils']
+//				logger.debug "$trip.VOL | fils         => " + fils
+				if(fils != null && !fils.isEmpty()) {
+//					logger.debug "$trip.VOL | I have childs !"
+					def filsProdige = fils.max { unFils ->
+						calculGainCumule unFils
+					}
+					trip['fils prodige'] = filsProdige
+					trip['cumul'] += filsProdige['cumul']
+				}
+			}
+//			logger.debug "$trip.VOL | fils prodige => " + trip['fils prodige']
+//			logger.debug "$trip.VOL | gain cumule  => " + trip['cumul']
+			return trip['cumul']
+		}
+		
+		// En considérant chaque noeud comme un départ de mon arbre, je calcul le gain cumulé du prix de mon noeud + prix du fils cumulé
+		def tripPart = jsonTrips.max { trip -> calculGainCumule trip }
+		optimisation['gain'] = tripPart['cumul']
+		optimisation['path'] += tripPart.VOL
+		while(tripPart['fils prodige'] != null) {
+			optimisation['path'] += tripPart['fils prodige'].VOL
+			tripPart = tripPart['fils prodige']
+		}
+					
 //		logger.debug "optimisation=$optimisation"
 		return optimisation
 	}
