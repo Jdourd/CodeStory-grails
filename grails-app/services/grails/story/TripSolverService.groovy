@@ -15,15 +15,18 @@ class TripSolverService {
 	/** Algotrithm designed with help of Jeremie Lussiez */
     def solveTrips(jsonTrips) {
 		def optimisation = [gain: 0, path: []]
-
+		def cumul = new TreeMap()
+		
 		// tri topologique
 		jsonTrips =
         	jsonTrips
                 .sort { - it.DEPART }
-                .eachWithIndex { trip, index -> 
+                .eachWithIndex { trip, index ->
+					cumul.put(trip.DEPART, null) 
 					trip['index'] = index
 				}
 //		logger.debug "jsonTrips=$jsonTrips"
+		def lastCumul = cumul.lastKey()
 		
 // 		Calcul d'un gain cumulé :
 //		 - s'il est déjà calculé, je le retourne
@@ -37,15 +40,22 @@ class TripSolverService {
 				trip['cumul'] = trip.PRIX
 				def departFils = trip.DEPART + trip.DUREE
 //				println jsonTrips[trip['index']..0]
-				def premierFils = jsonTrips[trip['index']..0].find { departFils <= it.DEPART }
-//				println "premier fils $premierFils"
-				if(premierFils != null) {
-					def fils = jsonTrips[0..premierFils['index']]
-//					println "fils $fils"
-					if(fils != null && !fils.isEmpty()) {
-						def filsProdige = fils.max { calculGainCumule it }
-						trip['fils prodige'] = filsProdige
-						trip['cumul'] += filsProdige['cumul']
+				def cumulProche = cumul.subMap(trip.DEPART, lastCumul).find { departFils <= it.key}
+				if(cumulProche != null && cumulProche.value != null) {
+					trip['fils prodige'] = cumulProche.value
+					trip['cumul'] += cumulProche.value['cumul']
+				} else {
+					def premierFils = jsonTrips[trip['index']..0].find { departFils <= it.DEPART }
+	//				println "premier fils $premierFils"
+					if(premierFils != null) {
+						def fils = jsonTrips[0..premierFils['index']]
+	//					println "fils $fils"
+						if(fils != null && !fils.isEmpty()) {
+							def filsProdige = fils.max { calculGainCumule it }
+							cumul.put(filsProdige.DEPART, filsProdige)
+							trip['fils prodige'] = filsProdige
+							trip['cumul'] += filsProdige['cumul']
+						}
 					}
 				}
 			}
