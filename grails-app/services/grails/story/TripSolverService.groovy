@@ -2,6 +2,7 @@ package grails.story
 
 import org.apache.commons.logging.LogFactory
 import grails.converters.JSON
+import groovy.time.*
 
 class TripSolverService {
 
@@ -15,7 +16,7 @@ class TripSolverService {
     def solveTrips(jsonTrips) {
 //		logger.debug "jsonTrips=$jsonTrips"
 		def optimisation = [gain: 0, path: []]
-		
+
 		// tri topologique
 		jsonTrips = jsonTrips.sort { - it.DEPART }
 		
@@ -26,33 +27,30 @@ class TripSolverService {
 //		 - s'il a plusieurs fils, noeud.GAIN_CUMULE = noeud.PRIX + max(fils.GAIN_CUMULE) et je stocke le fils qui a le max(père.GAIN_CUMULE)
 		def calculGainCumule
 		calculGainCumule = { trip ->
-//			logger.debug "$trip.VOL | pere         => " + trip
 			if(!trip.containsKey('cumul')) {
-//				logger.debug "$trip.VOL | cumul not found, calculating it !"
 				trip['cumul'] = trip.PRIX
-				def fils = jsonTrips.findAll { trip.DEPART + trip.DUREE <= it.DEPART }
-//				logger.debug "$trip.VOL | fils         => " + fils
+				def departFils = trip.DEPART + trip.DUREE
+				def timeStart = new Date()
+				def indexPremierFils = jsonTrips.findIndexOf { departFils > it.DEPART }
+				def fils = jsonTrips[0..<indexPremierFils]
+				def timeStop = new Date()
+				TimeDuration duration = TimeCategory.minus(timeStop, timeStart)
+				println("trip $trip.VOL processed in $duration.millis ms");
 				if(fils != null && !fils.isEmpty()) {
-//					logger.debug "$trip.VOL | I have childs !"
-					def filsProdige = fils.max { unFils ->
-						calculGainCumule unFils
-					}
+					def filsProdige = fils.max { calculGainCumule it }
 					trip['fils prodige'] = filsProdige
 					trip['cumul'] += filsProdige['cumul']
 				}
 			}
-//			logger.debug "$trip.VOL | fils prodige => " + trip['fils prodige']
-//			logger.debug "$trip.VOL | gain cumule  => " + trip['cumul']
 			return trip['cumul']
 		}
 		
-		// En considérant chaque noeud comme un départ de mon arbre, je calcul le gain cumulé du prix de mon noeud + prix du fils cumulé
-		def tripPart = jsonTrips.max { trip -> calculGainCumule trip }
-		optimisation['gain'] = tripPart['cumul']
-		optimisation['path'] += tripPart.VOL
-		while(tripPart['fils prodige'] != null) {
-			optimisation['path'] += tripPart['fils prodige'].VOL
-			tripPart = tripPart['fils prodige']
+		def tripStart = jsonTrips.max { calculGainCumule it }
+		optimisation['gain'] = tripStart['cumul']
+		optimisation['path'] += tripStart.VOL
+		while(tripStart['fils prodige'] != null) {
+			optimisation['path'] += tripStart['fils prodige'].VOL
+			tripStart = tripStart['fils prodige']
 		}
 					
 //		logger.debug "optimisation=$optimisation"
