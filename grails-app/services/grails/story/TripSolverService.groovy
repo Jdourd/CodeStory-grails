@@ -14,11 +14,16 @@ class TripSolverService {
 
 	/** Algotrithm designed with help of Jeremie Lussiez */
     def solveTrips(jsonTrips) {
-//		logger.debug "jsonTrips=$jsonTrips"
 		def optimisation = [gain: 0, path: []]
 
 		// tri topologique
-		jsonTrips = jsonTrips.sort { - it.DEPART }
+		jsonTrips =
+        	jsonTrips
+                .sort { - it.DEPART }
+                .eachWithIndex { trip, index -> 
+					trip['index'] = index
+				}
+//		logger.debug "jsonTrips=$jsonTrips"
 		
 // 		Calcul d'un gain cumulé :
 //		 - s'il est déjà calculé, je le retourne
@@ -27,19 +32,21 @@ class TripSolverService {
 //		 - s'il a plusieurs fils, noeud.GAIN_CUMULE = noeud.PRIX + max(fils.GAIN_CUMULE) et je stocke le fils qui a le max(père.GAIN_CUMULE)
 		def calculGainCumule
 		calculGainCumule = { trip ->
+//			println "vol $trip.VOL"
 			if(!trip.containsKey('cumul')) {
 				trip['cumul'] = trip.PRIX
 				def departFils = trip.DEPART + trip.DUREE
-				def timeStart = new Date()
-				def indexPremierFils = jsonTrips.findIndexOf { departFils > it.DEPART }
-				def fils = jsonTrips[0..<indexPremierFils]
-				def timeStop = new Date()
-				TimeDuration duration = TimeCategory.minus(timeStop, timeStart)
-				println("trip $trip.VOL processed in $duration.millis ms");
-				if(fils != null && !fils.isEmpty()) {
-					def filsProdige = fils.max { calculGainCumule it }
-					trip['fils prodige'] = filsProdige
-					trip['cumul'] += filsProdige['cumul']
+//				println jsonTrips[trip['index']..0]
+				def premierFils = jsonTrips[trip['index']..0].find { departFils <= it.DEPART }
+//				println "premier fils $premierFils"
+				if(premierFils != null) {
+					def fils = jsonTrips[0..premierFils['index']]
+//					println "fils $fils"
+					if(fils != null && !fils.isEmpty()) {
+						def filsProdige = fils.max { calculGainCumule it }
+						trip['fils prodige'] = filsProdige
+						trip['cumul'] += filsProdige['cumul']
+					}
 				}
 			}
 			return trip['cumul']
