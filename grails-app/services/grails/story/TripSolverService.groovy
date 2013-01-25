@@ -15,26 +15,24 @@ class TripSolverService {
 	/** Algotrithm designed with help of Jeremie Lussiez */
     def solveTrips(jsonTrips) {
 		def optimisation = [gain: 0, path: []]
-		def departMap = new TreeMap()
 		def cumulMap = new TreeMap()
+		def lastCumul = 0
 		
 //		logger.debug "jsonTrips=$jsonTrips"
-		jsonTrips.each { trip ->
-			def key = - trip.DEPART
-			if(departMap.get(key) == null) {
-				departMap.put(key, [])
-			} 
-			departMap.get(key).add(trip)
-		}
-		def lastCumul = - departMap.firstKey()
+		def departMap = 
+			jsonTrips
+				.sort{ - it.DEPART }
+				.groupBy { 
+					lastCumul = Math.max(lastCumul, it.DEPART)
+					it.DEPART
+				}
 			
-		departMap.each { key, trips ->
-			def depart = - key
+		departMap.each { depart, trips ->
 			def maxCumul = trips.max { trip ->
 				trip['gain'] = trip.PRIX
 				def arrivee = trip.DEPART + trip.DUREE
 				if(arrivee <= lastCumul) {
-					def cumulProcheArrivee = cumulMap.find { cumulDepart, cumulTrip -> cumulTrip != null && cumulTrip.DEPART >= arrivee }
+					def cumulProcheArrivee = cumulMap.find { it.key >= arrivee }
 					if(cumulProcheArrivee != null && cumulProcheArrivee.value != null) {
 						trip['fils prodige'] = cumulProcheArrivee.value
 						trip['gain'] += trip['fils prodige']['gain']
@@ -45,7 +43,8 @@ class TripSolverService {
 			if(depart == lastCumul) {
 				cumulMap.put(depart, maxCumul)
 			} else {
-				def cumulProcheDepart = cumulMap.subMap( (depart + 1)..lastCumul ).find { it.value != null }
+				def departPlusUn = depart + 1
+				def cumulProcheDepart = cumulMap.find { it.key >= departPlusUn }
 				if(cumulProcheDepart != null 
 					&& cumulProcheDepart.value['gain'] > maxCumul['gain']) {
 					cumulMap.put(depart, cumulProcheDepart.value)
