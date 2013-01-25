@@ -12,7 +12,8 @@ class HelloController {
 				   'Es tu heureux de participer(OUI/NON)',
 				   'Es tu pret a recevoir une enonce au format markdown par http post(OUI/NON)',
 				   'As tu bien recu le premier enonce(OUI/NON)',
-				   'As tu bien recu le second enonce(OUI/NON)'].contains(question)){
+				   'As tu bien recu le second enonce(OUI/NON)',
+				   'Souhaites-tu-participer-a-la-suite-de-Code-Story(OUI/NON)'].contains(question)){
 			render(text:'OUI', contentType:'text/plain')
 		} else if(['Est ce que tu reponds toujours oui(OUI/NON)', 
 				   'As tu copie le code de ndeloof(OUI/NON/JE_SUIS_NICOLAS)'].contains(question)) {
