@@ -15,61 +15,50 @@ class TripSolverService {
 	/** Algotrithm designed with help of Jeremie Lussiez */
     def solveTrips(jsonTrips) {
 		def optimisation = [gain: 0, path: []]
-		def cumul = new TreeMap()
+		def cumulMap = new TreeMap()
 		
-		// tri topologique
-		jsonTrips =
-        	jsonTrips
-                .sort { - it.DEPART }
-                .eachWithIndex { trip, index ->
-					cumul.put(trip.DEPART, null) 
-					trip['index'] = index
-				}
 //		logger.debug "jsonTrips=$jsonTrips"
-		def lastCumul = cumul.lastKey()
-		
-// 		Calcul d'un gain cumulé :
-//		 - s'il est déjà calculé, je le retourne
-//		 - s'il n'a pas de fils, noeud.GAIN_CUMULE = noeud.PRIX
-//		 - s'il a un fils, noeud.GAIN_CUMULE = noeud.PRIX + fils.GAIN_CUMULE et je stocke le fils
-//		 - s'il a plusieurs fils, noeud.GAIN_CUMULE = noeud.PRIX + max(fils.GAIN_CUMULE) et je stocke le fils qui a le max(père.GAIN_CUMULE)
-		def calculGainCumule
-		calculGainCumule = { trip ->
-//			println "vol $trip.VOL"
-			if(!trip.containsKey('cumul')) {
-				trip['cumul'] = trip.PRIX
-				def departFils = trip.DEPART + trip.DUREE
-//				println jsonTrips[trip['index']..0]
-				def cumulProche = cumul.subMap(trip.DEPART, lastCumul).find { departFils <= it.key}
-				if(cumulProche != null && cumulProche.value != null) {
-					trip['fils prodige'] = cumulProche.value
-					trip['cumul'] += cumulProche.value['cumul']
-				} else {
-					def premierFils = jsonTrips[trip['index']..0].find { departFils <= it.DEPART }
-	//				println "premier fils $premierFils"
-					if(premierFils != null) {
-						def fils = jsonTrips[0..premierFils['index']]
-	//					println "fils $fils"
-						if(fils != null && !fils.isEmpty()) {
-							def filsProdige = fils.max { calculGainCumule it }
-							cumul.put(filsProdige.DEPART, filsProdige)
-							trip['fils prodige'] = filsProdige
-							trip['cumul'] += filsProdige['cumul']
-						}
+		jsonTrips.each { trip ->
+			if(cumulMap.get(trip.DEPART) == null) {
+				cumulMap.put(trip.DEPART, []) 
+			} 
+			cumulMap.get(trip.DEPART).add(trip)
+		}
+		def lastCumul = cumulMap.lastKey()
+			
+		cumulMap.reverseEach { depart, trips ->
+			def maxCumul = trips.max { trip ->
+				trip['gain'] = trip.PRIX
+				def arrivee = trip.DEPART + trip.DUREE
+				if(arrivee <= lastCumul) {
+					def cumulProcheArrivee = cumulMap.subMap( arrivee..lastCumul ).find { it.value != null }
+					if(cumulProcheArrivee != null && cumulProcheArrivee.value != null) {
+						trip['fils prodige'] = cumulProcheArrivee.value
+						trip['gain'] += trip['fils prodige']['gain']
 					}
 				}
+				trip['gain']
 			}
-			return trip['cumul']
+			if(depart == lastCumul) {
+				cumulMap.put(depart, maxCumul)
+			} else {
+				def cumulProcheDepart = cumulMap.subMap( (depart + 1)..lastCumul ).find { it.value != null }
+				if(cumulProcheDepart != null 
+					&& cumulProcheDepart.value['gain'] > maxCumul['gain']) {
+					cumulMap.put(depart, cumulProcheDepart.value)
+				} else {
+					cumulMap.put(depart, maxCumul)
+				}
+			}
 		}
-		
-		def tripStart = jsonTrips.max { calculGainCumule it }
-		optimisation['gain'] = tripStart['cumul']
+
+		def tripStart = cumulMap.firstEntry().value
+		optimisation['gain'] = tripStart['gain']
 		optimisation['path'] += tripStart.VOL
 		while(tripStart['fils prodige'] != null) {
-			optimisation['path'] += tripStart['fils prodige'].VOL
-			tripStart = tripStart['fils prodige']
+		        optimisation['path'] += tripStart['fils prodige'].VOL
+		        tripStart = tripStart['fils prodige']
 		}
-					
 //		logger.debug "optimisation=$optimisation"
 		return optimisation
 	}
