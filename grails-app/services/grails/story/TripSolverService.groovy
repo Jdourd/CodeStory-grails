@@ -15,23 +15,26 @@ class TripSolverService {
 	/** Algotrithm designed with help of Jeremie Lussiez */
     def solveTrips(jsonTrips) {
 		def optimisation = [gain: 0, path: []]
+		def departMap = new TreeMap()
 		def cumulMap = new TreeMap()
 		
 //		logger.debug "jsonTrips=$jsonTrips"
 		jsonTrips.each { trip ->
-			if(cumulMap.get(trip.DEPART) == null) {
-				cumulMap.put(trip.DEPART, []) 
+			def key = - trip.DEPART
+			if(departMap.get(key) == null) {
+				departMap.put(key, [])
 			} 
-			cumulMap.get(trip.DEPART).add(trip)
+			departMap.get(key).add(trip)
 		}
-		def lastCumul = cumulMap.lastKey()
+		def lastCumul = - departMap.firstKey()
 			
-		cumulMap.reverseEach { depart, trips ->
+		departMap.each { key, trips ->
+			def depart = - key
 			def maxCumul = trips.max { trip ->
 				trip['gain'] = trip.PRIX
 				def arrivee = trip.DEPART + trip.DUREE
 				if(arrivee <= lastCumul) {
-					def cumulProcheArrivee = cumulMap.subMap( arrivee..lastCumul ).find { it.value != null }
+					def cumulProcheArrivee = cumulMap.find { cumulDepart, cumulTrip -> cumulTrip != null && cumulTrip.DEPART >= arrivee }
 					if(cumulProcheArrivee != null && cumulProcheArrivee.value != null) {
 						trip['fils prodige'] = cumulProcheArrivee.value
 						trip['gain'] += trip['fils prodige']['gain']
