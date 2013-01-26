@@ -36,6 +36,15 @@ class TripSolverServiceTests {
 		def expectedOptimisation = ["gain" : 18, "path" : ["LEGACY01"]]
 		assert service.solveTrips(propositions) == expectedOptimisation
     }
+	
+	void test_optimize_another_two_conflict_combinaisons() {
+		def propositions = [
+          [ "VOL": "MONAD42", "DEPART": 0, "DUREE": 5, "PRIX": 10 ],
+          [ "VOL": "LEGACY01", "DEPART": 2, "DUREE": 9, "PRIX": 18 ]
+		]
+		def expectedOptimisation = ["gain" : 18, "path" : ["LEGACY01"]]
+		assert service.solveTrips(propositions) == expectedOptimisation
+    }
 
     void test_example_combinaison() {
 		def propositions = [
