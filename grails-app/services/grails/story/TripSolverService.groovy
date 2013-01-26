@@ -3,6 +3,7 @@ package grails.story
 import org.apache.commons.logging.LogFactory
 import grails.converters.JSON
 import groovy.time.*
+import groovy.transform.ToString
 
 class TripSolverService {
 
@@ -17,46 +18,67 @@ class TripSolverService {
     def solveTrips(jsonTrips) {
 		def optimisation = [gain: 0, path: []]
 //		logger.debug "jsonTrips=$jsonTrips"
-		def departList = 
-			jsonTrips.collect {
-				['tag':'DEPART', 'value': it.DEPART, 'trip':it]
-			}
-		def arriveeList = 
-			jsonTrips.collect {
-				it['ARRIVEE'] = it.DEPART + it.DUREE
-				['tag':'ARRIVEE', 'value': it.ARRIVEE, 'trip':it]
-			}
-		def departArriveeList = (departList + arriveeList).sort { - it.value }
-//		println departArriveeList
+		def departArriveeList = []
 		
-		// pour chaque trip
-		// si c'est une arrivée, tu lui donne ton meilleur trajet
-		// si c'est un départ, tu le calcules pour voir s'il devient le meilleur départ
-		def meilleurACetInstant = null
-		departArriveeList.each {
-			def trip = it.trip
-			if(it.tag == 'ARRIVEE') {
-				if(meilleurACetInstant != null) {
-					trip['fils prodige'] = meilleurACetInstant
-				}
-			} else {
-				trip['gain'] = trip.PRIX
-				if(trip['fils prodige'] != null) {
-					trip['gain'] += trip['fils prodige']['gain']
-				}
-				if(meilleurACetInstant == null || trip['gain'] > meilleurACetInstant['gain']) {
-					meilleurACetInstant = trip
-				}
-			}
+//		def addStart = new Date()
+		jsonTrips.each { 
+			departArriveeList.add(new CapsuleDeTransport(depart: true,  value: it.DEPART,            trip: it))
+			departArriveeList.add(new CapsuleDeTransport(depart: false, value: it.DEPART + it.DUREE, trip: it))
 		}
 		
+//		def sortStart = new Date()
+		def meilleurACetInstant = null
+		departArriveeList = departArriveeList
+			.sort { a,b ->
+				def comparison = a.value <=> b.value
+				if(comparison == 0) { comparison = a.depart <=> b.depart }
+				- comparison
+			}
+			
+//		def algoStart = new Date()
+		departArriveeList
+			.each {
+				def trip = it.trip
+				if(!it.depart) {
+					if(meilleurACetInstant != null) {
+						trip['fils prodige'] = meilleurACetInstant
+					}
+				} else {
+					trip['gain'] = trip.PRIX
+					if(trip['fils prodige'] != null) {
+						trip['gain'] += trip['fils prodige']['gain']
+					}
+					if(meilleurACetInstant == null || trip['gain'] > meilleurACetInstant['gain']) {
+						meilleurACetInstant = trip
+					}
+				}
+			}
+		
+			
+//		def renderStart = new Date()
 		optimisation['gain'] = meilleurACetInstant['gain']
-		optimisation['path'] += meilleurACetInstant.VOL
+		optimisation['path'].add(meilleurACetInstant.VOL)
 		while(meilleurACetInstant['fils prodige'] != null) {
-				optimisation['path'] += meilleurACetInstant['fils prodige'].VOL
+				optimisation['path'].add(meilleurACetInstant['fils prodige'].VOL)
 				meilleurACetInstant = meilleurACetInstant['fils prodige']
 		}
+		
+//		def stop = new Date()
+//		TimeDuration addDuration = TimeCategory.minus(sortStart, addStart)
+//		TimeDuration sortDuration = TimeCategory.minus(algoStart, sortStart)
+//		TimeDuration algoDuration = TimeCategory.minus(renderStart, algoStart)
+//		TimeDuration renderDuration = TimeCategory.minus(stop, renderStart)
+//		TimeDuration totalDuration = TimeCategory.minus(stop, addStart)
+//		println "total=$totalDuration\tadd=$addDuration\tsort=$sortDuration\talgo=$algoDuration\trender=$renderDuration"
+		
 //		logger.debug "optimisation=$optimisation"
 		return optimisation
+	}
+	
+	@ToString
+	class CapsuleDeTransport {
+		def depart
+		def value
+		def trip
 	}
 }
