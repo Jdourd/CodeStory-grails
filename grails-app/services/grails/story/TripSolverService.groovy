@@ -12,54 +12,49 @@ class TripSolverService {
 	static transactional = false
 	static scope = "singleton"
 
-	/** Algotrithm designed with help of Jeremie Lussiez */
+	/** Algotrithm designed with help of Jeremie Lussiez 
+	 * New algorithm with help of Herr Casaux */
     def solveTrips(jsonTrips) {
 		def optimisation = [gain: 0, path: []]
-		def cumulMap = new TreeMap()
-		def lastCumul = 0
-		
 //		logger.debug "jsonTrips=$jsonTrips"
-		def departMap = 
-			jsonTrips
-				.sort{ - it.DEPART }
-				.groupBy { 
-					lastCumul = Math.max(lastCumul, it.DEPART)
-					it.DEPART
-				}
-			
-		departMap.each { depart, trips ->
-			def maxCumul = trips.max { trip ->
-				trip['gain'] = trip.PRIX
-				def arrivee = trip.DEPART + trip.DUREE
-				if(arrivee <= lastCumul) {
-					def cumulProcheArrivee = cumulMap.find { it.key >= arrivee }
-					if(cumulProcheArrivee != null && cumulProcheArrivee.value != null) {
-						trip['fils prodige'] = cumulProcheArrivee.value
-						trip['gain'] += trip['fils prodige']['gain']
-					}
-				}
-				trip['gain']
+		def departList = 
+			jsonTrips.collect {
+				['tag':'DEPART', 'value': it.DEPART, 'trip':it]
 			}
-			if(depart == lastCumul) {
-				cumulMap.put(depart, maxCumul)
+		def arriveeList = 
+			jsonTrips.collect {
+				it['ARRIVEE'] = it.DEPART + it.DUREE
+				['tag':'ARRIVEE', 'value': it.ARRIVEE, 'trip':it]
+			}
+		def departArriveeList = (departList + arriveeList).sort { - it.value }
+//		println departArriveeList
+		
+		// pour chaque trip
+		// si c'est une arrivée, tu lui donne ton meilleur trajet
+		// si c'est un départ, tu le calcules pour voir s'il devient le meilleur départ
+		def meilleurACetInstant = null
+		departArriveeList.each {
+			def trip = it.trip
+			if(it.tag == 'ARRIVEE') {
+				if(meilleurACetInstant != null) {
+					trip['fils prodige'] = meilleurACetInstant
+				}
 			} else {
-				def departPlusUn = depart + 1
-				def cumulProcheDepart = cumulMap.find { it.key >= departPlusUn }
-				if(cumulProcheDepart != null 
-					&& cumulProcheDepart.value['gain'] > maxCumul['gain']) {
-					cumulMap.put(depart, cumulProcheDepart.value)
-				} else {
-					cumulMap.put(depart, maxCumul)
+				trip['gain'] = trip.PRIX
+				if(trip['fils prodige'] != null) {
+					trip['gain'] += trip['fils prodige']['gain']
+				}
+				if(meilleurACetInstant == null || trip['gain'] > meilleurACetInstant['gain']) {
+					meilleurACetInstant = trip
 				}
 			}
 		}
-
-		def tripStart = cumulMap.firstEntry().value
-		optimisation['gain'] = tripStart['gain']
-		optimisation['path'] += tripStart.VOL
-		while(tripStart['fils prodige'] != null) {
-		        optimisation['path'] += tripStart['fils prodige'].VOL
-		        tripStart = tripStart['fils prodige']
+		
+		optimisation['gain'] = meilleurACetInstant['gain']
+		optimisation['path'] += meilleurACetInstant.VOL
+		while(meilleurACetInstant['fils prodige'] != null) {
+				optimisation['path'] += meilleurACetInstant['fils prodige'].VOL
+				meilleurACetInstant = meilleurACetInstant['fils prodige']
 		}
 //		logger.debug "optimisation=$optimisation"
 		return optimisation
