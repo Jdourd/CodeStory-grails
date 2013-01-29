@@ -13,7 +13,7 @@ class JajascriptController {
 
     def optimize = {
 		def trips
-		def readJsonDate = new Date()
+		def parsingJsonDate = new Date()
 		if(!request.JSON.isEmpty()) {
 			trips = request.JSON
 //			logger.debug "json request=$trips"
@@ -22,14 +22,20 @@ class JajascriptController {
 			trips = JSON.parse trips
 //			logger.debug "map request=$trips"
 		}
+		
 		def callSolverDate = new Date()
 		def optimisation = tripSolverService.solveTrips(trips)
 //		logger.debug "optimisation=$optimisation"
+		
+		def marshallingJsonDate = new Date()
+		def jsonOptimisation = optimisation as JSON
+		
 		def stopDate = new Date()
-		TimeDuration jsonDuration = TimeCategory.minus(callSolverDate, readJsonDate)
-		TimeDuration solverDuration = TimeCategory.minus(stopDate, callSolverDate)
-		TimeDuration totalDuration = TimeCategory.minus(stopDate, readJsonDate)
-		logger.info "total=$totalDuration\tjson=$jsonDuration\tsolver=$solverDuration"
-		render optimisation as JSON
+		TimeDuration parsingJsonDuration = TimeCategory.minus(callSolverDate, parsingJsonDate)
+		TimeDuration solverDuration = TimeCategory.minus(marshallingJsonDate, callSolverDate)
+		TimeDuration marshallingDuration = TimeCategory.minus(stopDate, marshallingJsonDate)
+		TimeDuration totalDuration = TimeCategory.minus(stopDate, parsingJsonDate)
+		logger.info "total=$totalDuration\tparsing=$parsingJsonDuration\tsolver=$solverDuration\tmarshalling=$marshallingDuration"
+		render jsonOptimisation
 	}
 }
