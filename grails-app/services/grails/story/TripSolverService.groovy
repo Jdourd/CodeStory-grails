@@ -7,6 +7,7 @@ import groovy.time.*
 class TripSolverService {
 
 	private static final logger = LogFactory.getLog(this)
+	private static final timeLogger = LogFactory.getLog('grails.story.TripSolverServiceTime')
 	
 	// Services are transactional by default in Grails. It is not needed here.
 	static transactional = false
@@ -15,10 +16,12 @@ class TripSolverService {
 	/** Algotrithm designed with help of Jeremie Lussiez */
     def solveTrips(jsonTrips) {
 		def optimisation = [gain: 0, path: []]
+//		logger.debug "jsonTrips=$jsonTrips"
 		def cumulMap = new TreeMap()
 		def lastCumul = 0
+		Date addAndSortStart, algoStart, renderStart, stop
 		
-//		logger.debug "jsonTrips=$jsonTrips"
+		if(timeLogger.isDebugEnabled()) addAndSortStart = new Date()
 		def departMap = 
 			jsonTrips
 				.sort{ - it.DEPART }
@@ -26,7 +29,8 @@ class TripSolverService {
 					lastCumul = Math.max(lastCumul, it.DEPART)
 					it.DEPART
 				}
-			
+		
+		if(timeLogger.isDebugEnabled()) algoStart = new Date()
 		departMap.each { depart, trips ->
 			def maxCumul = trips.max { trip ->
 				trip['gain'] = trip.PRIX
@@ -54,12 +58,22 @@ class TripSolverService {
 			}
 		}
 
+		if(timeLogger.isDebugEnabled()) renderStart = new Date()
 		def tripStart = cumulMap.firstEntry().value
 		optimisation['gain'] = tripStart['gain']
 		optimisation['path'] += tripStart.VOL
 		while(tripStart['fils prodige'] != null) {
 		        optimisation['path'] += tripStart['fils prodige'].VOL
 		        tripStart = tripStart['fils prodige']
+		}
+		
+		if(timeLogger.isDebugEnabled()) {
+			stop = new Date()
+			TimeDuration addAndSortDuration = TimeCategory.minus(algoStart, addAndSortStart)
+			TimeDuration algoDuration = TimeCategory.minus(renderStart, algoStart)
+			TimeDuration renderDuration = TimeCategory.minus(stop, renderStart)
+			TimeDuration totalDuration = TimeCategory.minus(stop, addAndSortStart)
+			timeLogger.debug "total=$totalDuration\tand and sort=$addAndSortDuration\talgo=$algoDuration\trender=$renderDuration"
 		}
 //		logger.debug "optimisation=$optimisation"
 		return optimisation
