@@ -8,6 +8,7 @@ import groovy.transform.ToString
 class TripSolverService {
 
 	private static final logger = LogFactory.getLog(this)
+	private static final timeLogger = LogFactory.getLog('grails.story.TripSolverServiceTime')
 	
 	// Services are transactional by default in Grails. It is not needed here.
 	static transactional = false
@@ -19,14 +20,15 @@ class TripSolverService {
 		def optimisation = [gain: 0, path: []]
 //		logger.debug "jsonTrips=$jsonTrips"
 		def departArriveeList = []
+		Date addStart, sortStart, algoStart, renderStart, stop
 		
-//		def addStart = new Date()
+		if(timeLogger.isDebugEnabled()) addStart = new Date()
 		jsonTrips.each { 
 			departArriveeList.add(new CapsuleDeTransport(depart: true,  value: it.DEPART,            trip: it))
 			departArriveeList.add(new CapsuleDeTransport(depart: false, value: it.DEPART + it.DUREE, trip: it))
 		}
 		
-//		def sortStart = new Date()
+		if(timeLogger.isDebugEnabled()) sortStart = new Date()
 		def meilleurACetInstant = null
 		departArriveeList = departArriveeList
 			.sort { a,b ->
@@ -35,7 +37,7 @@ class TripSolverService {
 				- comparison
 			}
 			
-//		def algoStart = new Date()
+		if(timeLogger.isDebugEnabled()) algoStart = new Date()
 		departArriveeList
 			.each {
 				def trip = it.trip
@@ -55,7 +57,7 @@ class TripSolverService {
 			}
 		
 			
-//		def renderStart = new Date()
+		if(timeLogger.isDebugEnabled()) renderStart = new Date()
 		optimisation['gain'] = meilleurACetInstant['gain']
 		optimisation['path'].add(meilleurACetInstant.VOL)
 		while(meilleurACetInstant['fils prodige'] != null) {
@@ -63,14 +65,15 @@ class TripSolverService {
 				meilleurACetInstant = meilleurACetInstant['fils prodige']
 		}
 		
-//		def stop = new Date()
-//		TimeDuration addDuration = TimeCategory.minus(sortStart, addStart)
-//		TimeDuration sortDuration = TimeCategory.minus(algoStart, sortStart)
-//		TimeDuration algoDuration = TimeCategory.minus(renderStart, algoStart)
-//		TimeDuration renderDuration = TimeCategory.minus(stop, renderStart)
-//		TimeDuration totalDuration = TimeCategory.minus(stop, addStart)
-//		println "total=$totalDuration\tadd=$addDuration\tsort=$sortDuration\talgo=$algoDuration\trender=$renderDuration"
-		
+		if(timeLogger.isDebugEnabled()) {
+			stop = new Date()
+			TimeDuration addDuration = TimeCategory.minus(sortStart, addStart)
+			TimeDuration sortDuration = TimeCategory.minus(algoStart, sortStart)
+			TimeDuration algoDuration = TimeCategory.minus(renderStart, algoStart)
+			TimeDuration renderDuration = TimeCategory.minus(stop, renderStart)
+			TimeDuration totalDuration = TimeCategory.minus(stop, addStart)
+			timeLogger.debug "total=$totalDuration\tadd=$addDuration\tsort=$sortDuration\talgo=$algoDuration\trender=$renderDuration"
+		}
 //		logger.debug "optimisation=$optimisation"
 		return optimisation
 	}

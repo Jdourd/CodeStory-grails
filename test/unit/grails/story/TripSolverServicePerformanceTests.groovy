@@ -12,12 +12,12 @@ class TripSolverServicePerformanceTests {
 	
 	@Ignore
     void testSomething() {
-        int max = 100000
+        int max = 2000
         Random random = new Random()
-        for (int i =0; i < max+1; i=i+10000) {
-//		for (int i =max; i < max+1; i++) {
+//        for (int i =0; i < max+1; i=i+10000) {
+		for (int i =max; i < max+1; i++) {
             def trips = []
-            for (int j = 1; j <= (i+1)*5; j++) {
+            for (int j = 1; j <= i*5; j++) {
                 def trip = [:]
                 trip['VOL'] = Integer.toBinaryString(j)
                 trip['DEPART'] = j
@@ -29,7 +29,7 @@ class TripSolverServicePerformanceTests {
             new TripSolverService().solveTrips(trips)
 			def timeStop = new Date()
 			TimeDuration duration = TimeCategory.minus(timeStop, timeStart)
-            println("Level " + (i*5) + " : " + duration);
+            println("Level " + trips.size() + " : " + duration);
         }
     }
 }
