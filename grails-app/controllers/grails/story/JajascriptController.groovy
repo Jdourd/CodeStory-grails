@@ -15,14 +15,13 @@ class JajascriptController {
     def optimize = {
 		def trips
 		def parsingJsonDate = new Date()
-		if(!request.JSON.isEmpty()) {
-			trips = request.JSON
-			logger.info "json request : " + trips.size()
-		} else {
-			trips = params.find { true }.key // get first key
-			trips = new ObjectMapper().readValue(trips, List.class)
-			logger.info "map request : " + trips.size()
+		trips = request.getReader().text
+		if(trips.size() == 0){
+			trips = params.find { true }.key
 		}
+//		logger.info "map request : " + trips
+		trips = new ObjectMapper().readValue(trips, List.class)
+		logger.info "map request : " + trips.size()
 		
 		def callSolverDate = new Date()
 		def optimisation = tripSolverService.solveTrips(trips)
@@ -30,7 +29,6 @@ class JajascriptController {
 		
 		def marshallingJsonDate = new Date()
 		def jsonOptimisation = new ObjectMapper().writeValueAsString(optimisation)
-//		def jsonOptimisation = optimisation as JSON
 		
 		def stopDate = new Date()
 		TimeDuration parsingJsonDuration = TimeCategory.minus(callSolverDate, parsingJsonDate)
