@@ -22,7 +22,7 @@ class JajascriptController {
 		
 		def parsingJsonDate = new Date()
 		trips = new ObjectMapper().readValue(trips, List.class)
-		logger.info "map request : " + trips.size()
+		logger.info "request : $trips.size trips"
 		
 		def callSolverDate = new Date()
 		def optimisation = tripSolverService.solveTrips(trips)

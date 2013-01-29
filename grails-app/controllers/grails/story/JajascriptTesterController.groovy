@@ -20,8 +20,7 @@ class JajascriptTesterController {
 		
 		def http = new HTTPBuilder( 'http://grails-story.herokuapp.com' )
 		http.post( path: 'jajascript/optimize', body: trips, requestContentType: JSON) { resp ->
-		   println "Tweet response status: ${resp.statusLine}"
-		   assert resp.statusLine.statusCode == 200
+		   render "response status: ${resp.statusLine}"
 		}
 	}
 }
