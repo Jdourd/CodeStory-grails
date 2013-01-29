@@ -41,11 +41,10 @@ grails.project.dependency.resolution = {
     dependencies {
         // specify dependencies here under either 'build', 'compile', 'runtime', 'test' or 'provided' scopes e.g.
 
-        // runtime 'mysql:mysql-connector-java:5.1.20'
-		runtime 'postgresql:postgresql:9.1-901-1.jdbc4'
 		test 'org.easytesting:fest-assert:1.4'
 		compile 'org.codehaus.jackson:jackson-core-asl:1.8.3'
 		compile 'org.codehaus.jackson:jackson-mapper-asl:1.8.3'
+		compile 'org.grails.plugins:rest:0.7'
     }
 
     plugins {
