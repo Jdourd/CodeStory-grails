@@ -3,6 +3,7 @@ package grails.story
 import org.apache.commons.logging.LogFactory
 import grails.converters.JSON
 import groovy.time.*
+import org.codehaus.jackson.map.ObjectMapper
 
 class JajascriptController {
 
@@ -16,11 +17,11 @@ class JajascriptController {
 		def parsingJsonDate = new Date()
 		if(!request.JSON.isEmpty()) {
 			trips = request.JSON
-//			logger.debug "json request=$trips"
+			logger.info "json request"
 		} else {
 			trips = params.find { true }.key // get first key
-			trips = JSON.parse trips
-//			logger.debug "map request=$trips"
+			trips = new ObjectMapper().readValue(trips, List.class)
+			logger.info "map request"
 		}
 		
 		def callSolverDate = new Date()
@@ -28,7 +29,8 @@ class JajascriptController {
 //		logger.debug "optimisation=$optimisation"
 		
 		def marshallingJsonDate = new Date()
-		def jsonOptimisation = optimisation as JSON
+		def jsonOptimisation = new ObjectMapper().writeValueAsString(optimisation)
+//		def jsonOptimisation = optimisation as JSON
 		
 		def stopDate = new Date()
 		TimeDuration parsingJsonDuration = TimeCategory.minus(callSolverDate, parsingJsonDate)
