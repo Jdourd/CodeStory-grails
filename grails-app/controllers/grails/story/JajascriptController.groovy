@@ -17,11 +17,11 @@ class JajascriptController {
 		def parsingJsonDate = new Date()
 		if(!request.JSON.isEmpty()) {
 			trips = request.JSON
-			logger.info "json request"
+			logger.info "json request : " + trips.size()
 		} else {
 			trips = params.find { true }.key // get first key
 			trips = new ObjectMapper().readValue(trips, List.class)
-			logger.info "map request"
+			logger.info "map request : " + trips.size()
 		}
 		
 		def callSolverDate = new Date()
