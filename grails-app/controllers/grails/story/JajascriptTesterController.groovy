@@ -23,4 +23,13 @@ class JajascriptTesterController {
 		   render "response status: ${resp.statusLine}"
 		}
 	}
+	
+	def sample() {
+		def trips = this.class.getResource("/resources/jajascript-10k.txt").text
+		
+		def http = new HTTPBuilder( 'http://localhost:8080/grails-story/' )
+		http.post( path: 'jajascript/optimize', body: trips, requestContentType: JSON) { resp ->
+		   render "response status: ${resp.statusLine}"
+		}
+	}
 }
