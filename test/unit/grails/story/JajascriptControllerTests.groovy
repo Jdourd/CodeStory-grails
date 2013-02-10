@@ -12,7 +12,7 @@ class JajascriptControllerTests {
 	
 	void test_optimize_simple_combinaison() {
 		def propositions = '[{ "VOL": "MONAD42", "DEPART": 0, "DUREE": 5, "PRIX": 10 }]'
-		def expectedOptimisation = ["gain" : 10, "path" : ["MONAD42"]]
+		def expectedOptimisation = [gain: 10, path: ["MONAD42"]]
 		askAndCheckResponse(propositions, expectedOptimisation)
     }
 
@@ -23,17 +23,17 @@ class JajascriptControllerTests {
 							'{ "VOL": "YAGNI17", "DEPART": 5, "DUREE": 9, "PRIX": 7 },' + 
 							'{ "VOL": "TABOUL1", "DEPART": 0, "DUREE": 20, "PRIX": 20 },' + 
 							'{ "VOL": "PISTAC03", "DEPART": 15, "DUREE": 3, "PRIX": 5 }]'
-		def expectedOptimisation = ["gain" : 23, "path" : ["MONAD42","LEGACY01","PISTAC03"]]
+		def expectedOptimisation = [gain: 23, path: ["MONAD42","LEGACY01","PISTAC03"]]
 		askAndCheckResponse(propositions, expectedOptimisation)
     }
 	
 	def askAndCheckResponse(propositions, expectedResponse){
 		defineBeans {
-			tripSolverService(TripSolverService)
+			tripSolverService TripSolverService
 		}
 		request.content = propositions
 		controller.optimize()
-		def responseObject = JSON.parse(response.contentAsString)
+		def responseObject = JSON.parse response.contentAsString
 		assert responseObject == expectedResponse
 	}
 }
